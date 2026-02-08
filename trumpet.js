@@ -4,8 +4,8 @@ const partialKeys = ["z", "x", "c", "v", "b", "n", "m"];
 let activeKey = null;
 let previousKey = null;
 const fingers = new Set();
-const Bb = new Audio('audio/bbtrumpet.mp3')
-Bb.preservesPitch = false;
+let currentBb = null;
+
 let position = 1
 const trumpetImage = document.getElementById('trumpet');
 function getPlaybackRate(key, position) {
@@ -20,6 +20,16 @@ function getPlaybackRate(key, position) {
     }
     const factor = Math.pow(Math.pow(2, (-0.5)), (position - 1) / 6);
     return baseFactors[key] * factor;
+}
+function playBb(rate) {
+   if (currentBb) {
+    currentBb.pause();
+    currentBb.currentTime = 0;
+   } 
+   currentBb = new Audio('audio/bbtrumpet.mp3')
+   currentBb.preservesPitch = false;
+   currentBb.playbackRate = rate;
+   currentBb.play();
 }
 function checkFingers() {
     const fingering = [...fingers].sort().join("");
@@ -69,28 +79,41 @@ document.addEventListener('keydown', (check) => {
     checkFingers();
     if(partialKeys.includes(key)) {
         activeKey = check.key;
-        Bb.currentTime = 0;
-        Bb.playbackRate = getPlaybackRate(activeKey, position)
-        Bb.play();
+        playBb(getPlaybackRate(activeKey, position));
     }
     if(activeKey !== null && activeKey !== key && partialKeys.includes(activeKey)) {
-        Bb.pause();
-        Bb.currentTime = 0;
+        if (currentBb) {
+            currentBb.pause();
+            currentBb.currentTime = 0;
+            currentBb = null;
+        }
     }
     if(valveKeys.includes(key) && partialKeys.includes(activeKey)) {
-        Bb.pause();
-        Bb.currentTime = 0;
-        Bb.playbackRate = getPlaybackRate(activeKey, position) 
-        Bb.play(); 
+        if (currentBb) {
+            currentBb.pause();
+            currentBb.currentTime = 0;
+            currentBb = null;
+        }
+        playBb(getPlaybackRate(activeKey, position));
     }
 })
 document.addEventListener('keyup', (check) => {
-    if(valveKeys.includes(key) && !partialKeys.includes(key)) {
+        const key = check.key.toLowerCase();
+    if(partialKeys.includes(key)) {
+        if (currentBb) {
+            currentBb.pause();
+            currentBb.currentTime = 0;
+            currentBb = null;
+        }
+    }
+
+    if(valveKeys.includes(key) && !partialKeys.includes(key) && !activeKey == null) {
         checkFingers();
-        Bb.pause();
-        Bb.currentTime = 0;
-        Bb.playbackRate = getPlaybackRate(activeKey, position) 
-        Bb.play(); 
+        if (currentBb) {
+            currentBb.pause();
+            currentBb.currentTime = 0;
+            currentBb = null;
+        }
     }
     fingers.delete(check.key.toLowerCase());
     checkFingers();
