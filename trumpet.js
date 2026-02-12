@@ -16,7 +16,8 @@ function getPlaybackRate(key, position) {
         v: 2.52 * 2,
         b: 2.998 * 2,
         n: 3.567 * 2,
-        m: 4 * 2
+        m: 4 * 2,
+        Comma: 5
     }
     const factor = Math.pow(Math.pow(2, (-0.5)), (position - 1) / 6);
     return baseFactors[key] * factor;
@@ -104,7 +105,19 @@ document.addEventListener('keyup', (check) => {
             currentBb.pause();
             currentBb.currentTime = 0;
             currentBb = null;
+            activeKey = null;
         }
+    }
+        if(valveKeys.includes(key) && partialKeys.includes(activeKey)) {
+        if (currentBb) {
+            currentBb.pause();
+            currentBb.currentTime = 0;
+            currentBb = null;
+        }
+        fingers.delete(check.key.toLowerCase());
+        checkFingers();
+        getPlaybackRate();
+        playBb(getPlaybackRate(activeKey, position));
     }
 
     if(valveKeys.includes(key) && !partialKeys.includes(key) && !activeKey == null) {
